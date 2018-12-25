@@ -36,7 +36,7 @@ $TrustAll=$TAAssembly.CreateInstance("Local.ToolkitExtensions.Net.CertificatePol
 [System.Net.ServicePointManager]::CertificatePolicy=$TrustAll
 
 
-$MailboxName = "altug.yildirim@comparex.com"
+$MailboxName = "aaa@aaa.com"
 
 $service.AutodiscoverUrl($MailboxName,{$true})
 
