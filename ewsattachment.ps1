@@ -1,11 +1,11 @@
-﻿Add-Type -Path "C:\Program Files\Microsoft\Exchange\Web Services\2.0\Microsoft.Exchange.WebServices.dll"
+Add-Type -Path "C:\Program Files\Microsoft\Exchange\Web Services\2.0\Microsoft.Exchange.WebServices.dll"
 
 
 $ExchangeVersion = [Microsoft.Exchange.WebServices.Data.ExchangeVersion]::Exchange2010_SP1
 $service = New-Object Microsoft.Exchange.WebServices.Data.ExchangeService($ExchangeVersion)
 
 
-$creds = New-Object System.Net.NetworkCredential("aa@aa.com","") 
+$creds = New-Object System.Net.NetworkCredential("","") 
 $service.Credentials = $creds  
 $Provider=New-Object Microsoft.CSharp.CSharpCodeProvider
 $Compiler=$Provider.CreateCompiler()
@@ -36,23 +36,28 @@ $TrustAll=$TAAssembly.CreateInstance("Local.ToolkitExtensions.Net.CertificatePol
 [System.Net.ServicePointManager]::CertificatePolicy=$TrustAll
 
 
-$MailboxName = "aaa@aaa.com"
+$MailboxName = ""
 
 $service.AutodiscoverUrl($MailboxName,{$true})
 
 
 
-$Sfha = new-object Microsoft.Exchange.WebServices.Data.SearchFilter+IsEqualTo([Microsoft.Exchange.WebServices.Data.EmailMessageSchema]::HasAttachments, $true)
+#$Sfha = new-object Microsoft.Exchange.WebServices.Data.SearchFilter+IsEqualTo([Microsoft.Exchange.WebServices.Data.EmailMessageSchema]::HasAttachments, $true)
+$Sfha = New-object Microsoft.Exchange.WebServices.Data.SearchFilter+IsEqualTo([Microsoft.Exchange.WebServices.Data.EmailMessageSchema]::IsRead, $false) 
 
 $folderid= new-object Microsoft.Exchange.WebServices.Data.FolderId([Microsoft.Exchange.WebServices.Data.WellKnownFolderName]::Inbox,$MailboxName)   
 $Inbox = [Microsoft.Exchange.WebServices.Data.Folder]::Bind($service,$folderid)  
 
-$ivItemView = New-Object Microsoft.Exchange.WebServices.Data.ItemView(10)
+$ivItemView = New-Object Microsoft.Exchange.WebServices.Data.ItemView(1)
 $downloadDirectory = "c:\temp"
 
 $findItemsResults = $Inbox.FindItems($Sfha,$ivItemView)
 foreach($miMailItems in $findItemsResults.Items){
        $miMailItems.Load()
+       
+       #$miMailItems.Move("Taslaklar")
+       
+
        foreach($attach in $miMailItems.Attachments ){
 if($attach.Name -like "*.pdf"){
              $attach.Load()
@@ -61,6 +66,8 @@ if($attach.Name -like "*.pdf"){
              $fiFile.Close()
              write-host "Downloaded Attachment : " + (($downloadDirectory + “\” + $attach.Name.ToString()))
 }
+
        }
+       $miMailItems.Delete([Microsoft.Exchange.WebServices.Data.DeleteMode]::SoftDelete)
 } 
 
